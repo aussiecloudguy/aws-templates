@@ -1,0 +1,54 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    
+    "Resources": {
+        "KMSKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Enabled": true,
+                "EnableKeyRotation": true,
+                "KeyPolicy": {
+                    
+                        "Version": "2012-10-17",
+                        "Id": "keypolicy",
+                        "Statement": [
+                            {
+                                "Sid": "Enable IAM User Permissions",
+                                "Effect": "Allow",
+                                "Principal": {
+                                    "AWS": { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:root" }
+                                },
+                                "Action": "kms:*",
+                                "Resource": "*"
+                            },
+                            {
+                                "Sid": "Allow CloudTrail and AWS Config to encrypt/decrypt logs",
+                                "Effect": "Allow",
+                                "Principal": {
+                                    "Service": [
+                                        "cloudtrail.amazonaws.com",
+                                        "config.amazonaws.com"
+                                    ]
+                                },
+                                "Action": [
+                                    "kms:GenerateDataKey",
+                                    "kms:Decrypt"
+                                ],
+                                "Resource": "*"
+                            }
+                        ]
+                    },
+                "MultiRegion": false
+            }
+        },
+        "KMSAlias": {
+            "Type": "AWS::KMS::Alias",
+            "Properties": {
+                "AliasName": "ControlTowerCMK",
+                "TargetKeyId": {
+                    "Ref": "KMSKey"
+                }
+            }
+        }
+    }
+}
